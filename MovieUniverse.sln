@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovieUniverse.WebAPI", "MovieUniverse.WebAPI\MovieUniverse.WebAPI.csproj", "{BC5DCD06-C9C0-43C4-A524-4C71D54BEFEC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovieUniverse.WebAPI", "MovieUniverse.WebAPI\MovieUniverse.WebAPI.csproj", "{BC5DCD06-C9C0-43C4-A524-4C71D54BEFEC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovieUniverse.Data", "MovieUniverse.Data\MovieUniverse.Data.csproj", "{86C46742-71F1-4836-A043-59435DE1AE18}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovieUniverse.Data", "MovieUniverse.Data\MovieUniverse.Data.csproj", "{86C46742-71F1-4836-A043-59435DE1AE18}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovieUniverse.Tests", "MovieUniverse.Tests\MovieUniverse.Tests.csproj", "{FA53FB4C-39B3-4AA6-BBE4-30B697BEDC4C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{86C46742-71F1-4836-A043-59435DE1AE18}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86C46742-71F1-4836-A043-59435DE1AE18}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86C46742-71F1-4836-A043-59435DE1AE18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA53FB4C-39B3-4AA6-BBE4-30B697BEDC4C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA53FB4C-39B3-4AA6-BBE4-30B697BEDC4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA53FB4C-39B3-4AA6-BBE4-30B697BEDC4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA53FB4C-39B3-4AA6-BBE4-30B697BEDC4C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

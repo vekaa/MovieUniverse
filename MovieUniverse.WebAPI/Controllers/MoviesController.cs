@@ -20,15 +20,20 @@ namespace MovieUniverse.WebAPI.Controllers
 
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Movie>>> GetAll()
+        [ProducesResponseType(200, Type = typeof(IEnumerable<Movie>))]
+        public async Task<IActionResult> GetAll()
         {
+            _logger.LogInformation("Get all method started"); // Za sve metode..
             var movies = await movieRepository.GetAll();
             return Ok(movies);
         }
 
         [HttpGet("{id}", Name = nameof(GetMovieById))]
+        [ProducesResponseType(200, Type = typeof(Movie))]
         public async Task<IActionResult> GetMovieById(int id)
         {
+            _logger.LogInformation($"Get movie with id {id}"); // Za sve metode..
+
             var movie = await movieRepository.GetMovieById(id);
             if (movie == null)
             {
@@ -41,13 +46,9 @@ namespace MovieUniverse.WebAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Movie>> Post(Movie movie)
+        [ProducesResponseType(201, Type = typeof(Movie))]
+        public async Task<IActionResult> Post(Movie movie)
         {
-            if (movie == null)
-            {
-                return BadRequest();
-            }
-
             await movieRepository.Create(movie);
 
             //Used when client needs to be rediredted to another action, display the new resource 
@@ -55,14 +56,16 @@ namespace MovieUniverse.WebAPI.Controllers
 
             return CreatedAtRoute(
                 routeName: nameof(GetMovieById),
-                routeValues: new { Id = movie.Id },
+                routeValues: new { movie.Id },
                 value: movie); //Used when client needs to know how to access
 
         }
 
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, Movie movie)
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> Update(int id, Movie movie) //movie
         {
             var res = await movieRepository.Update(id, movie);
             if (res == null)
@@ -71,19 +74,21 @@ namespace MovieUniverse.WebAPI.Controllers
             }
             else
             {
-                return new NoContentResult();
+                return NoContent();
             }
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> Delete(int id)
         {
-            var res = await movieRepository.Delete(id);
-            if (res == false)
+            var success = await movieRepository.Delete(id);
+            if (success)
             {
-                return NotFound();
+                return NoContent();
             }
-            return new NoContentResult();
+            return NotFound();
         }
 
 

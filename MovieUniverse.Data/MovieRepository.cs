@@ -24,21 +24,21 @@ namespace MovieUniverse.Data
             return await dbContext.Movies.AsNoTracking().ToListAsync();
         }
 
-        public async Task<Movie> GetMovieById(int id)
+        public async Task<Movie?> GetMovieById(int id)
         {
-            return await dbContext.Movies.FirstOrDefaultAsync(m => m.Id == id);
+            return await dbContext.Movies.SingleOrDefaultAsync(m => m.Id == id);
         }
 
         public async Task<Movie> Create(Movie movie)
         {
             var result = await dbContext.Movies.AddAsync(movie);
             await dbContext.SaveChangesAsync();
-            return result.Entity;
+            return result.Entity; //Movie
         }
 
-        public async Task<Movie> Update(int id, Movie newMovie)
+        public async Task<Movie> Update(int oldId, Movie newMovie)
         {
-            var movie = await dbContext.Movies.FirstOrDefaultAsync(m => m.Id == id);
+            var movie = await dbContext.Movies.FirstOrDefaultAsync(m => m.Id == oldId);
             if (movie != null)
             {
                 movie.ReleaseDate = newMovie.ReleaseDate;
@@ -52,7 +52,7 @@ namespace MovieUniverse.Data
             }
             else
             {
-                return null;
+                return await Task.FromResult<Movie>(null);
             }
         }
 
