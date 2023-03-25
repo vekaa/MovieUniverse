@@ -8,6 +8,9 @@ using NUnit.Framework.Internal;
 using Microsoft.Extensions.Logging;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using MovieUniverse.WebAPI.Mappers;
+using MovieUniverse.WebAPI.Models;
+using Genre = MovieUniverse.WebAPI.Models.Genre;
 
 namespace MovieUniverse.Tests
 {
@@ -15,16 +18,15 @@ namespace MovieUniverse.Tests
     {
         private Mock<ILogger<MoviesController>> loggerMock;
         private Mock<IMovieRepository> movieRepositoryMock;
-        private IEnumerable<Movie> movies;
         private MoviesController controller;
-
+        private Mock<IGetMovieMapper> getMovieMapperMock;
         [SetUp]
         public void Setup()
         {
             loggerMock = new Mock<ILogger<MoviesController>>();
             movieRepositoryMock = new Mock<IMovieRepository>();
-            
-            controller = new MoviesController(loggerMock.Object, movieRepositoryMock.Object);
+            getMovieMapperMock = new Mock<IGetMovieMapper>();
+            controller = new MoviesController(loggerMock.Object, movieRepositoryMock.Object,getMovieMapperMock.Object);
         }
                
 
@@ -32,8 +34,13 @@ namespace MovieUniverse.Tests
         public async Task GetAll_Valid_ReturnsAllMovies()
         {
             //Arrange
-            AddMovieToList();
+            var movies = GetMovies();
+            var moviesDTO = GetMoviesDTO();
             movieRepositoryMock.Setup(a=> a.GetAll()).Returns(Task.FromResult(movies));
+            foreach(var pair in movies.Zip(moviesDTO, (m,d) => new {m, d }))
+            {
+                getMovieMapperMock.Setup( m => m.MapToDTO(pair.m)).Returns(pair.d);
+            }
 
             //Act
             var actual = await controller.GetAll();
@@ -43,6 +50,11 @@ namespace MovieUniverse.Tests
             actual.Should().BeOfType<OkObjectResult>().Subject.Value
                 .Should().BeEquivalentTo(movies);
             movieRepositoryMock.Verify(a => a.GetAll(), Times.Once);
+
+            foreach (var pair in movies.Zip(moviesDTO, (m, d) => new { m, d }))
+            {
+                getMovieMapperMock.Verify(m => m.MapToDTO(pair.m),Times.Once);
+            }
         }
 
         [Test]
@@ -55,7 +67,7 @@ namespace MovieUniverse.Tests
                 Title = "SUperbad",
                 ShortDescription = "Comedy",
                 ReleaseDate = new DateTime(2008, 8, 9),
-                Genres = new List<Genre> { Genre.Comedy }
+                Genres = new List<Data.Models.Genre> { Data.Models.Genre.Comedy }
             };
             movieRepositoryMock.Setup(m => m.GetMovieById(It.Is<int>(t => t == 4))).Returns(Task.FromResult(expacted));
 
@@ -95,7 +107,7 @@ namespace MovieUniverse.Tests
                 Title = "SUperbad",
                 ShortDescription = "Comedy",
                 ReleaseDate = new DateTime(2008, 8, 9),
-                Genres = new List<Genre> { Genre.Comedy }
+                Genres = new List<Data.Models.Genre> { Data.Models.Genre.Comedy }
             };
             movieRepositoryMock.Setup(m => m.Create(created)).Returns(Task.FromResult(created));
 
@@ -140,13 +152,23 @@ namespace MovieUniverse.Tests
             movieRepositoryMock.Verify(a => a.Delete(deleteId), Times.Once);
         }
 
-        private void AddMovieToList()
+        private IEnumerable<Movie> GetMovies()
         {
-            movies = new List<Movie>{
-                new Movie { Id = 1, Title = "Breaking Bad", ShortDescription = "Interesting sory", ReleaseDate = new DateTime(2008, 8, 9), Genres = new List<Genre> { Genre.Action, Genre.Mistery } },
-                new Movie { Id = 2, Title = "Black list", ShortDescription = "CIA,BIA", ReleaseDate = new DateTime(2011, 1, 9), Genres = new List<Genre> { Genre.Action, Genre.Mistery } },
-                new Movie { Id = 3, Title = "Notebook", ShortDescription = "Love story", ReleaseDate = new DateTime(2008, 8, 9), Genres = new List<Genre> { Genre.Romance, Genre.Family } },
-                new Movie { Id = 4, Title = "SUperbad", ShortDescription = "Comedy", ReleaseDate = new DateTime(2008, 8, 9), Genres = new List<Genre> { Genre.Comedy } }
+            return new List<Movie>{
+                new Movie { Id = 1, Title = "Breaking Bad", ShortDescription = "Interesting sory", ReleaseDate = new DateTime(2008, 8, 9), Genres = new List<Data.Models.Genre> { Data.Models.Genre.Action, Data.Models.Genre.Mistery } },
+                new Movie { Id = 2, Title = "Black list", ShortDescription = "CIA,BIA", ReleaseDate = new DateTime(2011, 1, 9), Genres = new List<Data.Models.Genre> { Data.Models.Genre.Action, Data.Models.Genre.Mistery } },
+                new Movie { Id = 3, Title = "Notebook", ShortDescription = "Love story", ReleaseDate = new DateTime(2008, 8, 9), Genres = new List<Data.Models.Genre> { Data.Models.Genre.Romance, Data.Models.Genre.Family } },
+                new Movie { Id = 4, Title = "SUperbad", ShortDescription = "Comedy", ReleaseDate = new DateTime(2008, 8, 9), Genres = new List<Data.Models.Genre> { Data.Models.Genre.Comedy } }
+            };
+        }
+
+        private List<GetMovieDTO> GetMoviesDTO()
+        {
+            return new List<GetMovieDTO>{
+                new GetMovieDTO { Id = 1, Title = "Breaking Bad", ShortDescription = "Interesting sory", ReleaseDate = new DateTime(2008, 8, 9), Genres = new List<Genre> { Genre.Action, Genre.Mistery } },
+                new GetMovieDTO { Id = 2, Title = "Black list", ShortDescription = "CIA,BIA", ReleaseDate = new DateTime(2011, 1, 9), Genres = new List<Genre> { Genre.Action, Genre.Mistery } },
+                new GetMovieDTO { Id = 3, Title = "Notebook", ShortDescription = "Love story", ReleaseDate = new DateTime(2008, 8, 9), Genres = new List<Genre> { Genre.Romance, Genre.Family } },
+                new GetMovieDTO { Id = 4, Title = "SUperbad", ShortDescription = "Comedy", ReleaseDate = new DateTime(2008, 8, 9), Genres = new List<Genre> { Genre.Comedy } }
             };
         }
     }

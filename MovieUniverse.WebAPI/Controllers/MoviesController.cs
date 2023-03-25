@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using MovieUniverse.Data;
 using MovieUniverse.Data.Models;
+using MovieUniverse.WebAPI.Mappers;
+using MovieUniverse.WebAPI.Models;
 
 namespace MovieUniverse.WebAPI.Controllers
 {
@@ -11,28 +13,35 @@ namespace MovieUniverse.WebAPI.Controllers
 
         private readonly ILogger<MoviesController> _logger;
         private readonly IMovieRepository movieRepository;
+        private readonly IGetMovieMapper getMovieMapper;
+        private readonly ICreateMovieMapper createMovieMapper;
+        private readonly IUpdateMovieMapper updateMovieMapper;
 
-        public MoviesController(ILogger<MoviesController> logger, IMovieRepository movieRepository)
+
+        public MoviesController(ILogger<MoviesController> logger, IMovieRepository movieRepository, IGetMovieMapper getMovieMapper, ICreateMovieMapper createMovieMapper, IUpdateMovieMapper updateMovieMapper)
         {
             _logger = logger;
             this.movieRepository = movieRepository;
+            this.getMovieMapper = getMovieMapper;
+            this.createMovieMapper = createMovieMapper;
+            this.updateMovieMapper = updateMovieMapper;
         }
 
 
         [HttpGet]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<Movie>))]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<GetMovieDTO>))]
         public async Task<IActionResult> GetAll()
         {
-            _logger.LogInformation("Get all method started"); // Za sve metode..
+            _logger.LogInformation("Get all method started");
             var movies = await movieRepository.GetAll();
-            return Ok(movies);
+            return Ok(movies.Select(getMovieMapper.MapToDTO));
         }
 
         [HttpGet("{id}", Name = nameof(GetMovieById))]
-        [ProducesResponseType(200, Type = typeof(Movie))]
+        [ProducesResponseType(200, Type = typeof(GetMovieDTO))]
         public async Task<IActionResult> GetMovieById(int id)
         {
-            _logger.LogInformation($"Get movie with id {id}"); // Za sve metode..
+            _logger.LogInformation($"Get movie with id {id}");
 
             var movie = await movieRepository.GetMovieById(id);
             if (movie == null)
@@ -41,32 +50,31 @@ namespace MovieUniverse.WebAPI.Controllers
             }
             else
             {
-                return Ok(movie);
+                //return Ok(movie);
+                return Ok(getMovieMapper.MapToDTO(movie));
             }
         }
 
         [HttpPost]
-        [ProducesResponseType(201, Type = typeof(Movie))]
-        public async Task<IActionResult> Post(Movie movie)
+        [ProducesResponseType(201, Type = typeof(CreateMovieDTO))]
+        public async Task<IActionResult> Post(CreateMovieDTO movieDTO)
         {
-            await movieRepository.Create(movie);
-
-            //Used when client needs to be rediredted to another action, display the new resource 
-            //return CreatedAtAction(nameof(GetById),new {id = movie.Id} , movie);  
+            var movie = this.createMovieMapper.MapToEntity(movieDTO);
+            await movieRepository.Create(movie); 
 
             return CreatedAtRoute(
                 routeName: nameof(GetMovieById),
                 routeValues: new { movie.Id },
-                value: movie); //Used when client needs to know how to access
-
+                value: this.createMovieMapper.MapToDTO(movie)); //Used when client needs to know how to access
         }
 
 
         [HttpPut("{id}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> Update(int id, Movie movie) //movie
+        public async Task<IActionResult> Update(int id, UpdateMovieDTO movieDTO) //movie
         {
+            var movie = this.updateMovieMapper.MapToEntity(movieDTO);
             var res = await movieRepository.Update(id, movie);
             if (res == null)
             {
